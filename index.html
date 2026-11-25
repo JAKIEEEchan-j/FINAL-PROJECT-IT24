@@ -97,11 +97,32 @@
             <section class="map-section">
                 <h2>Location Map</h2>
 
-                <div class="location-search">
-                    <input type="text" id="location-search" placeholder="Search a Philippine location..."
-                        autocomplete="off">
-                    <button type="button" id="search-location">Search</button>
-                </div>
+               
+
+<div class="location-search">
+    <div class="location-input-wrapper">
+        <input
+            type="text"
+            id="location-search"
+            placeholder="Search a Philippine location..."
+            autocomplete="off"
+        >
+
+        <button
+            type="button"
+            id="clear-location-search"
+            aria-label="Clear search"
+        >
+            &times;
+        </button>
+    </div>
+
+    <button type="button" id="search-location">Search</button>
+
+    <div id="location-results" class="location-results"></div>
+</div>
+
+
 
                 <div id="map"></div>
             </section>
