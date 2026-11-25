@@ -1,6 +1,7 @@
 let map;
 let locationMarker = null;
 let openWeatherApiKey = "";
+let weatherRequestId = 0;
 
 let currentLocation = {
     latitude: 14.5995,
@@ -14,6 +15,7 @@ const DEFAULT_LOCATION = {
 };
 
 const DEFAULT_ZOOM = 6;
+
 
 // I-initialize ang interactive map sa Pilipinas.
 function initializeMap() {
@@ -62,7 +64,92 @@ function initializeMap() {
         currentLocation.longitude,
         currentLocation.name
     );
+
+map.on("click", async function (event) {
+    const latitude = event.latlng.lat;
+    const longitude = event.latlng.lng;
+
+    try {
+        // I-check kung naa ba sulod sa Pilipinas.
+        const reverseURL =
+            "https://nominatim.openstreetmap.org/reverse?" +
+            `lat=${latitude}&lon=${longitude}` +
+           "&format=jsonv2&addressdetails=1&namedetails=1";
+        const response = await fetch(reverseURL);
+
+        if (!response.ok) {
+            throw new Error("Unable to verify map location.");
+        }
+
+        const result = await response.json();
+
+        if (!result.address ||
+            result.address.country_code !== "ph") {
+            alert("Please select a location within the Philippines.");
+            return;
+        }
+
+        // Gamita ang exact coordinates nga gi-click.
+        currentLocation = {
+            latitude: latitude,
+            longitude: longitude,
+           name: getLocationLabel(result)
+        };
+
+        updateMapMarker(
+            latitude,
+            longitude,
+            currentLocation.name
+        );
+
+        if (openWeatherApiKey) {
+            await fetchCurrentWeather(latitude, longitude);
+        }
+
+        console.log("Pinned coordinates:", latitude, longitude);
+
+    } catch (error) {
+        console.error("Map location error:", error);
+        alert("Unable to verify this location. Please try again.");
+    }
+});
+
 }
+
+
+// Kuhaon ang mas simple nga location name.
+function getReadableLocationName(result) {
+    const address = result.address || {};
+
+    const placeName =
+        result.name ||
+        address.amenity ||
+        address.leisure ||
+        address.tourism ||
+        address.shop ||
+        address.building ||
+        address.road ||
+        address.neighbourhood ||
+        address.suburb ||
+        address.village ||
+        address.town ||
+        address.city ||
+        address.municipality ||
+        "Selected Location";
+
+    const area =
+        address.city ||
+        address.town ||
+        address.municipality ||
+        address.village;
+
+    if (area && placeName !== area) {
+        return `${placeName}, ${area}`;
+    }
+
+    return placeName;
+}
+
 
 // I-update ang marker ug map location.
 function updateMapMarker(latitude, longitude, locationName) {
@@ -85,11 +172,14 @@ function updateMapMarker(latitude, longitude, locationName) {
     });
 }
 
-// Mangita og lokasyon sulod sa Pilipinas.
+
+
+// Mangita og multiple locations sulod sa Pilipinas.
 async function searchLocation() {
     const searchInput = document.getElementById("location-search");
+    const resultsContainer = document.getElementById("location-results");
 
-    if (!searchInput) return;
+    if (!searchInput || !resultsContainer) return;
 
     const locationName = searchInput.value.trim();
 
@@ -98,6 +188,12 @@ async function searchLocation() {
         return;
     }
 
+    resultsContainer.replaceChildren();
+
+    const loadingMessage = document.createElement("p");
+    loadingMessage.textContent = "Searching locations...";
+    resultsContainer.appendChild(loadingMessage);
+
     try {
         const searchURL =
             "https://nominatim.openstreetmap.org/search?" +
@@ -105,7 +201,8 @@ async function searchLocation() {
             "&format=jsonv2" +
             "&countrycodes=ph" +
             "&addressdetails=1" +
-            "&limit=1";
+            "&namedetails=1" +
+            "&limit=8";
 
         const response = await fetch(searchURL);
 
@@ -115,51 +212,84 @@ async function searchLocation() {
 
         const results = await response.json();
 
-        if (results.length === 0) {
-            alert("Location not found. Please search within the Philippines.");
+        const philippineResults = results.filter(function (result) {
+            return result.address &&
+                result.address.country_code === "ph";
+        });
+
+        resultsContainer.replaceChildren();
+
+        if (philippineResults.length === 0) {
+            const noResults = document.createElement("p");
+            noResults.textContent =
+                "No matching Philippine locations found.";
+            resultsContainer.appendChild(noResults);
             return;
         }
 
-        const selectedLocation = results[0];
+        philippineResults.forEach(function (result) {
+            const resultButton = document.createElement("button");
 
-        if (
-            !selectedLocation.address ||
-            selectedLocation.address.country_code !== "ph"
-        ) {
-            alert("Only locations within the Philippines are allowed.");
-            return;
-        }
+            const readableName = getLocationLabel(result);
 
-        const latitude = parseFloat(selectedLocation.lat);
-        const longitude = parseFloat(selectedLocation.lon);
+            resultButton.type = "button";
+            resultButton.className = "location-result-item";
+            resultButton.textContent = readableName;
+            resultButton.title = result.display_name;
 
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            throw new Error("Invalid location coordinates.");
-        }
+            resultButton.addEventListener("click", async function () {
+                await selectSearchResult(result);
+                searchInput.value = readableName;
+                resultsContainer.replaceChildren();
+            });
 
-        currentLocation = {
-            latitude,
-            longitude,
-            name: selectedLocation.display_name
-        };
-
-        updateMapMarker(latitude, longitude, currentLocation.name);
-
-        if (openWeatherApiKey) {
-            await fetchCurrentWeather(latitude, longitude);
-        }
-
-        console.log("Selected Philippine location:", currentLocation.name);
+            resultsContainer.appendChild(resultButton);
+        });
 
     } catch (error) {
         console.error("Location search error:", error);
 
-        alert(
-            "Something went wrong while searching. " +
-            "Please check your internet connection and try again."
-        );
+        resultsContainer.replaceChildren();
+
+        const errorMessage = document.createElement("p");
+        errorMessage.textContent =
+            "Search failed. Please check your internet connection.";
+
+        resultsContainer.appendChild(errorMessage);
     }
 }
+
+
+ // I-select ang gipiling search result.
+async function selectSearchResult(selectedLocation) {
+    const latitude = parseFloat(selectedLocation.lat);
+    const longitude = parseFloat(selectedLocation.lon);
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        alert("Invalid location coordinates.");
+        return;
+    }
+
+    currentLocation = {
+        latitude,
+        longitude,
+        name: getLocationLabel(selectedLocation)
+    };
+
+    updateMapMarker(
+        latitude,
+        longitude,
+        currentLocation.name
+    );
+
+    if (openWeatherApiKey) {
+        await fetchCurrentWeather(latitude, longitude);
+    }
+
+    console.log("Selected Philippine location:", currentLocation.name);
+}
+
+
 
 // I-connect ang search button ug Enter key.
 function setupLocationSearch() {
@@ -313,6 +443,17 @@ function updateApiStatus(connected, message) {
 async function fetchCurrentWeather(latitude, longitude) {
     if (!openWeatherApiKey) return false;
 
+    const requestId = ++weatherRequestId;
+
+    const temperature = document.getElementById("current-temperature");
+    const description = document.getElementById("weather-description");
+    const location = document.getElementById("weather-location");
+    const icon = document.getElementById("weather-icon");
+
+    if (description) {
+        description.textContent = "Loading weather...";
+    }
+
     const weatherURL =
         "https://api.openweathermap.org/data/2.5/weather?" +
         `lat=${latitude}&lon=${longitude}` +
@@ -326,10 +467,14 @@ async function fetchCurrentWeather(latitude, longitude) {
             throw new Error(data.message || "Unable to get weather data.");
         }
 
-        const temperature = document.getElementById("current-temperature");
-        const description = document.getElementById("weather-description");
-        const location = document.getElementById("weather-location");
-        const icon = document.getElementById("weather-icon");
+        // Ayaw tugoti ang old request nga mo-update sa dashboard.
+        if (requestId !== weatherRequestId) {
+            return false;
+        }
+
+        if (!data.main || !data.weather || !data.weather[0]) {
+            throw new Error("Invalid weather data received.");
+        }
 
         if (temperature) {
             temperature.textContent = `${Math.round(data.main.temp)}°C`;
@@ -364,9 +509,25 @@ async function fetchCurrentWeather(latitude, longitude) {
 
     } catch (error) {
         console.error("Weather error:", error);
+
+        if (requestId === weatherRequestId) {
+            if (description) {
+                description.textContent = "Weather unavailable";
+            }
+
+            if (icon) {
+                icon.textContent = "⚠️";
+            }
+
+            if (location) {
+                location.textContent = currentLocation.name;
+            }
+        }
+
         return false;
     }
 }
+
 
 // I-test ug i-connect ang OpenWeather API.
 async function connectOpenWeatherApi() {
@@ -426,6 +587,7 @@ function initializeEventCast() {
     setupThemeToggle();
     initializeMap();
     setupLocationSearch();
+    setupLocationSearchClear();
     setupNavigation();
     setupApiKey();
 
@@ -461,3 +623,54 @@ function setupApiKey() {
 }
 
 document.addEventListener("DOMContentLoaded", initializeEventCast);
+
+
+function setupLocationSearchClear() {
+    const searchInput = document.getElementById("location-search");
+    const clearButton = document.getElementById("clear-location-search");
+    const resultsContainer = document.getElementById("location-results");
+
+    if (!searchInput || !clearButton || !resultsContainer) return;
+
+    clearButton.addEventListener("click", function () {
+        searchInput.value = "";
+        resultsContainer.replaceChildren();
+        searchInput.focus();
+    });
+}
+
+
+// Kuhaon ang readable name sa location.
+function getLocationLabel(result) {
+    const address = result.address || {};
+
+    const placeName =
+        result.namedetails?.name ||
+        result.name ||
+        address.amenity ||
+        address.leisure ||
+        address.tourism ||
+        address.shop ||
+        address.building ||
+        address.road ||
+        address.neighbourhood ||
+        address.suburb ||
+        address.village ||
+        address.town ||
+        address.city ||
+        address.municipality ||
+        "Selected Location";
+
+    const area =
+        address.city ||
+        address.town ||
+        address.municipality ||
+        address.village ||
+        address.suburb;
+
+    if (area && placeName.toLowerCase() !== area.toLowerCase()) {
+        return `${placeName}, ${area}`;
+    }
+
+    return placeName;
+}
