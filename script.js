@@ -1,6 +1,12 @@
-
 let map;
 let locationMarker = null;
+let openWeatherApiKey = "";
+
+let currentLocation = {
+    latitude: 14.5995,
+    longitude: 120.9842,
+    name: "Manila, Philippines"
+};
 
 const DEFAULT_LOCATION = {
     latitude: 14.5995,
@@ -13,13 +19,8 @@ const DEFAULT_ZOOM = 6;
 function initializeMap() {
     const mapElement = document.getElementById("map");
 
-    if (!mapElement) {
-        console.error("Map element not found. Check your index.html.");
-        return;
-    }
-
-    if (typeof L === "undefined") {
-        console.error("Leaflet not loaded. Check the Leaflet script in index.html.");
+    if (!mapElement || typeof L === "undefined") {
+        console.error("Map element or Leaflet not found.");
         return;
     }
 
@@ -57,69 +58,54 @@ function initializeMap() {
     }).addTo(map);
 
     updateMapMarker(
-        DEFAULT_LOCATION.latitude,
-        DEFAULT_LOCATION.longitude,
-        "Manila, Philippines"
+        currentLocation.latitude,
+        currentLocation.longitude,
+        currentLocation.name
     );
 }
 
 // I-update ang marker ug map location.
 function updateMapMarker(latitude, longitude, locationName) {
-    if (!map) {
-        console.error("Map has not been initialized.");
-        return;
-    }
+    if (!map) return;
 
     if (locationMarker !== null) {
         map.removeLayer(locationMarker);
     }
 
-    locationMarker = L.marker([
-        latitude,
-        longitude
-    ]).addTo(map);
+    locationMarker = L.marker([latitude, longitude]).addTo(map);
 
     const popupContent = document.createElement("strong");
     popupContent.textContent = locationName;
 
-    locationMarker
-        .bindPopup(popupContent)
-        .openPopup();
+    locationMarker.bindPopup(popupContent).openPopup();
 
-    map.flyTo(
-        [latitude, longitude],
-        12,
-        {
-            animate: true,
-            duration: 1.5
-        }
-    );
+    map.flyTo([latitude, longitude], 12, {
+        animate: true,
+        duration: 1.5
+    });
 }
 
 // Mangita og lokasyon sulod sa Pilipinas.
 async function searchLocation() {
     const searchInput = document.getElementById("location-search");
 
-    if (!searchInput) {
-        console.error("Location search input not found.");
-        return;
-    }
+    if (!searchInput) return;
 
     const locationName = searchInput.value.trim();
 
-    if (locationName === "") {
+    if (!locationName) {
         alert("Please enter a Philippine location.");
         return;
     }
 
     try {
         const searchURL =
-            `https://nominatim.openstreetmap.org/search?` +
+            "https://nominatim.openstreetmap.org/search?" +
             `q=${encodeURIComponent(locationName)}` +
-            `&format=jsonv2` +
-            `&countrycodes=ph` +
-            `&addressdetails=1` +
-            `&limit=1`;
+            "&format=jsonv2" +
+            "&countrycodes=ph" +
+            "&addressdetails=1" +
+            "&limit=1";
 
         const response = await fetch(searchURL);
 
@@ -151,13 +137,19 @@ async function searchLocation() {
             throw new Error("Invalid location coordinates.");
         }
 
-        updateMapMarker(
+        currentLocation = {
             latitude,
             longitude,
-            selectedLocation.display_name
-        );
+            name: selectedLocation.display_name
+        };
 
-        console.log("Selected Philippine location:", selectedLocation.display_name);
+        updateMapMarker(latitude, longitude, currentLocation.name);
+
+        if (openWeatherApiKey) {
+            await fetchCurrentWeather(latitude, longitude);
+        }
+
+        console.log("Selected Philippine location:", currentLocation.name);
 
     } catch (error) {
         console.error("Location search error:", error);
@@ -174,14 +166,11 @@ function setupLocationSearch() {
     const searchButton = document.getElementById("search-location");
     const searchInput = document.getElementById("location-search");
 
-    if (!searchButton || !searchInput) {
-        console.error("Location search elements were not found.");
-        return;
-    }
+    if (!searchButton || !searchInput) return;
 
     searchButton.addEventListener("click", searchLocation);
 
-    searchInput.addEventListener("keydown", function(event) {
+    searchInput.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
             searchLocation();
         }
@@ -192,10 +181,7 @@ function setupLocationSearch() {
 function setupThemeToggle() {
     const themeButton = document.getElementById("theme-toggle");
 
-    if (!themeButton) {
-        console.error("Theme button not found.");
-        return;
-    }
+    if (!themeButton) return;
 
     try {
         const savedTheme = localStorage.getItem("eventcast-theme");
@@ -205,10 +191,11 @@ function setupThemeToggle() {
             savedTheme === "light"
         );
 
-        themeButton.addEventListener("click", function() {
+        themeButton.addEventListener("click", function () {
             document.body.classList.toggle("light-mode");
 
-            const isLightMode = document.body.classList.contains("light-mode");
+            const isLightMode =
+                document.body.classList.contains("light-mode");
 
             try {
                 localStorage.setItem(
@@ -225,13 +212,252 @@ function setupThemeToggle() {
     }
 }
 
+// Ibalhin ang user sa gipiling page.
+function navigateToPage(pageName) {
+    const pageTitles = {
+        dashboard: ["Dashboard", "Welcome to your EventCast dashboard."],
+        weather: ["Weather", "Monitor Philippine weather conditions."],
+        locations: ["Locations", "Manage your monitored locations."],
+        "plan-event": ["Plan Event", "Plan safer outdoor events."],
+        "my-events": ["My Events", "View and manage your saved events."],
+        alerts: ["Weather Alerts", "Check weather warnings and recommendations."],
+        "api-key": ["API Key", "Connect your OpenWeather API key."],
+        settings: ["Settings", "Manage your EventCast preferences."]
+    };
+
+    if (!pageTitles[pageName]) {
+        pageName = "dashboard";
+    }
+
+    document.querySelectorAll(".page-view").forEach(function (view) {
+        view.hidden = view.id !== `${pageName}-view`;
+    });
+
+    document.querySelectorAll("#main-navigation a").forEach(function (link) {
+        const isActive = link.dataset.page === pageName;
+
+        link.classList.toggle("active", isActive);
+
+        if (isActive) {
+            link.setAttribute("aria-current", "page");
+        } else {
+            link.removeAttribute("aria-current");
+        }
+    });
+
+    document.getElementById("page-title").textContent =
+        pageTitles[pageName][0];
+
+    document.getElementById("page-description").textContent =
+        pageTitles[pageName][1];
+
+    if (pageName === "dashboard" && map) {
+        setTimeout(function () {
+            map.invalidateSize();
+        }, 100);
+    }
+}
+
+// I-setup ang SPA navigation.
+function setupNavigation() {
+    const navigation = document.getElementById("main-navigation");
+
+    if (!navigation) return;
+
+    navigation.addEventListener("click", function (event) {
+        const link = event.target.closest("a[data-page]");
+
+        if (!link) return;
+
+        event.preventDefault();
+
+        const pageName = link.dataset.page;
+
+        if (window.location.hash !== `#${pageName}`) {
+            window.location.hash = pageName;
+        } else {
+            navigateToPage(pageName);
+        }
+    });
+
+    window.addEventListener("hashchange", function () {
+        const pageName = window.location.hash.substring(1);
+        navigateToPage(pageName);
+    });
+
+    const initialPage = window.location.hash.substring(1) || "dashboard";
+
+    navigateToPage(initialPage);
+}
+
+// I-update ang API connection status.
+function updateApiStatus(connected, message) {
+    const indicator = document.getElementById("status-indicator");
+    const status = document.getElementById("api-status");
+    const messageElement = document.getElementById("api-message");
+
+    if (indicator) {
+        indicator.classList.toggle("connected", connected);
+    }
+
+    if (status) {
+        status.textContent = connected ? "Connected" : "Not connected";
+    }
+
+    if (messageElement && message) {
+        messageElement.textContent = message;
+    }
+}
+
+// Ikuha ang current weather sa selected location.
+async function fetchCurrentWeather(latitude, longitude) {
+    if (!openWeatherApiKey) return false;
+
+    const weatherURL =
+        "https://api.openweathermap.org/data/2.5/weather?" +
+        `lat=${latitude}&lon=${longitude}` +
+        `&appid=${openWeatherApiKey}&units=metric`;
+
+    try {
+        const response = await fetch(weatherURL);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to get weather data.");
+        }
+
+        const temperature = document.getElementById("current-temperature");
+        const description = document.getElementById("weather-description");
+        const location = document.getElementById("weather-location");
+        const icon = document.getElementById("weather-icon");
+
+        if (temperature) {
+            temperature.textContent = `${Math.round(data.main.temp)}°C`;
+        }
+
+        if (description) {
+            description.textContent = data.weather[0].description;
+        }
+
+        if (location) {
+            location.textContent = currentLocation.name;
+        }
+
+        if (icon) {
+            const weatherIcons = {
+                Clear: "☀️",
+                Clouds: "☁️",
+                Rain: "🌧️",
+                Drizzle: "🌦️",
+                Thunderstorm: "⛈️",
+                Snow: "❄️",
+                Mist: "🌫️",
+                Fog: "🌫️",
+                Haze: "🌫️"
+            };
+
+            icon.textContent =
+                weatherIcons[data.weather[0].main] || "🌤️";
+        }
+
+        return true;
+
+    } catch (error) {
+        console.error("Weather error:", error);
+        return false;
+    }
+}
+
+// I-test ug i-connect ang OpenWeather API.
+async function connectOpenWeatherApi() {
+    const apiInput = document.getElementById("api-key-input");
+    const connectButton = document.getElementById("connect-api");
+
+    if (!apiInput || !connectButton) return;
+
+    const enteredKey = apiInput.value.trim();
+
+    if (!enteredKey) {
+        updateApiStatus(false, "Please enter your OpenWeather API key.");
+        return;
+    }
+
+    connectButton.disabled = true;
+    connectButton.textContent = "Connecting...";
+
+    const previousKey = openWeatherApiKey;
+    openWeatherApiKey = enteredKey;
+
+    try {
+        const success = await fetchCurrentWeather(
+            DEFAULT_LOCATION.latitude,
+            DEFAULT_LOCATION.longitude
+        );
+
+        if (!success) {
+            throw new Error("Unable to verify API key.");
+        }
+
+        updateApiStatus(
+            true,
+            "OpenWeather API connected successfully. Test location: Manila."
+        );
+
+        apiInput.value = "";
+
+    } catch (error) {
+        openWeatherApiKey = previousKey;
+
+        updateApiStatus(
+            false,
+            "Connection failed. Please check your API key and try again."
+        );
+
+        console.error("API connection error:", error);
+
+    } finally {
+        connectButton.disabled = false;
+        connectButton.textContent = "Connect API";
+    }
+}
+
 // I-start ang EventCast features.
 function initializeEventCast() {
     setupThemeToggle();
     initializeMap();
     setupLocationSearch();
+    setupNavigation();
+    setupApiKey();
 
     console.log("EventCast initialized successfully.");
+}
+
+
+// I-connect ang API Key buttons.
+function setupApiKey() {
+    const apiKeyInput = document.getElementById("api-key-input");
+    const toggleButton = document.getElementById("toggle-api-key");
+    const connectButton = document.getElementById("connect-api");
+
+    if (!apiKeyInput || !toggleButton || !connectButton) {
+        console.error("API Key elements not found.");
+        return;
+    }
+
+    toggleButton.addEventListener("click", function () {
+        const isPassword = apiKeyInput.type === "password";
+
+        apiKeyInput.type = isPassword ? "text" : "password";
+        toggleButton.textContent = isPassword ? "Hide" : "Show";
+    });
+
+    connectButton.addEventListener("click", connectOpenWeatherApi);
+
+    apiKeyInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            connectOpenWeatherApi();
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", initializeEventCast);
