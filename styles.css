@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -416,4 +415,175 @@ body.light-mode #theme-toggle::before {
     .weather-icon {
         font-size: 42px;
     }
+}
+
+/* API Key Page */
+
+.api-section {
+    margin-top: 30px;
+    max-width: 750px;
+}
+
+.api-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 30px;
+}
+
+.api-heading h2 {
+    margin-bottom: 10px;
+}
+
+.api-heading p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.api-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 25px 0;
+    font-size: 14px;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #999;
+    display: inline-block;
+}
+
+.status-indicator.connected {
+    background-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.api-input-group {
+    margin-bottom: 20px;
+}
+
+.api-input-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.api-input-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.api-input-wrapper input {
+    flex: 1;
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--secondary-bg);
+    color: var(--text-color);
+    outline: none;
+}
+
+.api-input-wrapper button,
+.connect-button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #101014;
+    font-weight: 600;
+}
+
+.connect-button {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.api-input-wrapper button:hover,
+.connect-button:hover {
+    opacity: 0.85;
+}
+
+#api-message {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.api-info {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 10px;
+    background: var(--secondary-bg);
+}
+
+.api-info h3 {
+    margin-bottom: 12px;
+}
+
+.api-info ul {
+    padding-left: 20px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 14px;
+}
+
+.api-documentation {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.api-documentation a {
+    color: var(--accent);
+}
+
+@media (max-width: 500px) {
+    .api-card {
+        padding: 20px;
+    }
+
+    .api-input-wrapper {
+        flex-direction: column;
+    }
+
+    .api-input-wrapper button {
+        width: 100%;
+    }
+}
+
+/* SPA PAGE VIEWS */
+
+.page-view[hidden] {
+    display: none !important;
+}
+
+.page-view {
+    display: block;
+}
+
+/* API KEY THEME FIX */
+
+.api-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.api-heading p,
+#api-message,
+.api-info ul {
+    color: var(--muted);
+}
+
+.api-input-wrapper input {
+    background: var(--secondary);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.api-info {
+    background: var(--secondary);
 }
