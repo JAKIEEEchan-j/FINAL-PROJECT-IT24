@@ -1,137 +1,251 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventCast | Outdoor Event Weather Planning</title>
+    <meta name="description" content="EventCast - Weather monitoring and outdoor event planning in the Philippines.">
+
+    <title>EventCast - Weather for Every Event</title>
 
     <link rel="stylesheet" href="styles.css">
-
-    <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
 
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo">
             <h2>☀ EventCast</h2>
             <p>Weather for Every Event</p>
         </div>
 
-        <nav>
-            <a href="#" class="active">Dashboard</a>
-            <a href="pages/weather.html">Weather</a>
-            <a href="pages/locations.html">Locations</a>
-            <a href="pages/plan-event.html">Plan Event</a>
-            <a href="pages/my-events.html">My Events</a>
-            <a href="pages/alerts.html">Weather Alerts</a>
-            <a href="pages/api-key.html">API Key</a>
-            <a href="#">Settings</a>
+        <nav id="main-navigation">
+            <a href="#dashboard" class="active" data-page="dashboard">Dashboard</a>
+            <a href="#weather" data-page="weather">Weather</a>
+            <a href="#locations" data-page="locations">Locations</a>
+            <a href="#plan-event" data-page="plan-event">Plan Event</a>
+            <a href="#my-events" data-page="my-events">My Events</a>
+            <a href="#alerts" data-page="alerts">Weather Alerts</a>
+            <a href="#api-key" data-page="api-key">API Key</a>
+            <a href="#settings" data-page="settings">Settings</a>
         </nav>
-
     </aside>
 
-    <!-- Main Content -->
+    <!-- MAIN CONTENT -->
     <main class="main-content">
 
-        <!-- Header -->
+        <!-- TOP BAR -->
         <header class="topbar">
             <div>
-                <h1>Dashboard</h1>
-                <p>Outdoor Event Weather Planning System</p>
+                <h1 id="page-title">Dashboard</h1>
+                <p id="page-description">Welcome to your EventCast dashboard.</p>
             </div>
 
-            <button
-                id="theme-toggle"
-                type="button"
-                aria-label="Toggle color theme">
+            <button id="theme-toggle" type="button" aria-label="Toggle dark and light mode">
+                Toggle Theme
             </button>
         </header>
 
-        <!-- Welcome -->
-        <section class="welcome">
-            <h2>Welcome to EventCast!</h2>
-            <p>Plan smarter. Stay prepared. Enjoy every event.</p>
+        <!-- DASHBOARD VIEW -->
+        <section class="page-view" id="dashboard-view">
+
+            <section class="welcome">
+                <h2>Welcome to EventCast!</h2>
+                <p>Monitor weather conditions and plan safer outdoor events.</p>
+            </section>
+
+            <section class="weather-card">
+                <div>
+                    <h2>Current Weather</h2>
+                    <h3 id="weather-location">Manila, Philippines</h3>
+                    <h1 id="current-temperature">--°C</h1>
+                    <p id="weather-description">Connect your API key to get weather updates.</p>
+                </div>
+
+                <div class="weather-icon" id="weather-icon">🌤️</div>
+            </section>
+
+            <!-- STATISTICS -->
+            <section class="stats">
+                <div class="stat-card">
+                    <h3>Upcoming Events</h3>
+                    <h2 id="event-count">0</h2>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Monitored Locations</h3>
+                    <h2 id="location-count">1</h2>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Weather Alerts</h3>
+                    <h2 id="alert-count">0</h2>
+                </div>
+            </section>
+
+            <!-- FORECAST -->
+            <section class="forecast">
+                <h2>7-Day Forecast</h2>
+                <div class="forecast-list" id="forecast-list">
+                    Connect your API key to view the weather forecast.
+                </div>
+            </section>
+
+            <!-- MAP -->
+            <section class="map-section">
+                <h2>Location Map</h2>
+
+               
+
+<div class="location-search">
+    <div class="location-input-wrapper">
+        <input
+            type="text"
+            id="location-search"
+            placeholder="Search a Philippine location..."
+            autocomplete="off"
+        >
+
+        <button
+            type="button"
+            id="clear-location-search"
+            aria-label="Clear search"
+        >
+            &times;
+        </button>
+    </div>
+
+    <button type="button" id="search-location">Search</button>
+
+    <div id="location-results" class="location-results"></div>
+</div>
+
+
+
+                <div id="map"></div>
+            </section>
+
+            <!-- EVENTS -->
+            <section class="events-section">
+                <h2>Upcoming Events</h2>
+                <p id="upcoming-events-message">No upcoming events yet.</p>
+            </section>
+
         </section>
 
-        <!-- Current Weather -->
-        <section class="weather-card">
-            <div>
-                <h2>Current Weather</h2>
-                <h3>Manila, Philippines</h3>
-                <h1>--°C</h1>
-                <p>Waiting for weather data...</p>
-            </div>
-
-            <div class="weather-icon">
-                🌤️
-            </div>
+        <!-- WEATHER VIEW -->
+        <section class="page-view" id="weather-view" hidden>
+            <section class="forecast">
+                <h2>Weather Monitoring</h2>
+                <p>Weather information and forecasts will appear here.</p>
+            </section>
         </section>
 
-        <!-- Statistics -->
-        <section class="stats">
-
-            <div class="stat-card">
-                <h3>Upcoming Events</h3>
-                <h2 id="event-count">0</h2>
-            </div>
-
-            <div class="stat-card">
-                <h3>Saved Locations</h3>
-                <h2>0</h2>
-            </div>
-
-            <div class="stat-card">
-                <h3>Weather Alerts</h3>
-                <h2>0</h2>
-            </div>
-
+        <!-- LOCATIONS VIEW -->
+        <section class="page-view" id="locations-view" hidden>
+            <section class="map-section">
+                <h2>Manage Locations</h2>
+                <p>Monitor your selected Philippine locations here.</p>
+            </section>
         </section>
 
-        <!-- Forecast -->
-        <section class="forecast">
-            <h2>7-Day Weather Forecast</h2>
-
-            <div class="forecast-list">
-                <p>Weather forecast will appear here.</p>
-            </div>
+        <!-- PLAN EVENT VIEW -->
+        <section class="page-view" id="plan-event-view" hidden>
+            <section class="events-section">
+                <h2>Plan an Event</h2>
+                <p>Your event planning tools will appear here.</p>
+            </section>
         </section>
 
-        <!-- Map -->
-        <section class="map-section">
-            <h2>Location Monitoring</h2>
-            <p>Search for a location to monitor its weather.</p>
-
-            <div class="location-search">
-                <input
-                    type="text"
-                    id="location-search"
-                    placeholder="Search Philippine location..."
-                >
-
-                <button id="search-location" type="button">
-                    Search
-                </button>
-            </div>
-
-            <div id="map"></div>
+        <!-- MY EVENTS VIEW -->
+        <section class="page-view" id="my-events-view" hidden>
+            <section class="events-section">
+                <h2>My Events</h2>
+                <p>Your saved events will appear here.</p>
+            </section>
         </section>
 
-        <!-- Upcoming Events -->
-        <section class="events-section">
-            <h2>Upcoming Events</h2>
-            <p>Your planned events will appear here.</p>
+        <!-- WEATHER ALERTS VIEW -->
+        <section class="page-view" id="alerts-view" hidden>
+            <section class="events-section">
+                <h2>Weather Alerts</h2>
+                <p>Weather warnings and event recommendations will appear here.</p>
+            </section>
+        </section>
+
+        <!-- API KEY VIEW -->
+        <section class="page-view" id="api-key-view" hidden>
+            <section class="api-section">
+                <div class="api-card">
+
+                    <div class="api-heading">
+                        <h2>OpenWeather API</h2>
+                        <p>
+                            Connect your OpenWeather API key to access
+                            weather information for Philippine locations.
+                        </p>
+                    </div>
+
+                    <div class="api-status">
+                        <span class="status-indicator" id="status-indicator"></span>
+                        <span id="api-status">Not connected</span>
+                    </div>
+
+                    <div class="api-input-group">
+                        <label for="api-key-input">API Key</label>
+
+                        <div class="api-input-wrapper">
+                            <input type="password" id="api-key-input" placeholder="Enter your OpenWeather API key"
+                                autocomplete="off">
+
+                            <button type="button" id="toggle-api-key">Show</button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="connect-button" id="connect-api">
+                        Connect API
+                    </button>
+
+                    <p id="api-message">
+                        Your API key will stay in temporary browser memory
+                        and will not be saved in localStorage.
+                    </p>
+
+                    <div class="api-info">
+                        <h3>API Key Security</h3>
+                        <ul>
+                            <li>Your key is not saved in browser storage.</li>
+                            <li>Refreshing or closing the app clears the key.</li>
+                            <li>Frontend API keys can still be inspected by users.</li>
+                        </ul>
+                    </div>
+
+                    <div class="api-documentation">
+                        <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer">
+                            OpenWeather API Documentation
+                        </a>
+                    </div>
+
+                </div>
+            </section>
+        </section>
+
+        <!-- SETTINGS VIEW -->
+        <section class="page-view" id="settings-view" hidden>
+            <section class="events-section">
+                <h2>Settings</h2>
+                <p>EventCast application settings will appear here.</p>
+            </section>
         </section>
 
     </main>
 
-    <!-- JavaScript -->
+    <!-- SCRIPTS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
 
 </body>
+
 </html>
