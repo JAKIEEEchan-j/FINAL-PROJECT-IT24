@@ -151,13 +151,175 @@
             </section>
         </section>
 
-        <!-- PLAN EVENT VIEW -->
-        <section class="page-view" id="plan-event-view" hidden>
-            <section class="events-section">
-                <h2>Plan an Event</h2>
-                <p>Your event planning tools will appear here.</p>
+        
+<!-- PLAN EVENT VIEW -->
+<section class="page-view" id="plan-event-view" hidden>
+
+    <section class="events-section plan-event-section">
+        <h2>Plan an Event</h2>
+        <p>Set up your outdoor event and check the weather before saving.</p>
+
+        <div class="plan-event-layout">
+
+            <!-- EVENT FORM -->
+            <section class="event-form-card">
+                <h3>🗓️ Event Information</h3>
+
+                <form id="eventForm">
+                    <div class="event-form-grid">
+
+                        <div class="form-field">
+                            <label for="eventName">Event Name *</label>
+                            <input
+                                type="text"
+                                id="eventName"
+                                placeholder="e.g. Summer Music Festival"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="eventType">Event Type *</label>
+                            <select id="eventType" required>
+                                <option value="">Choose event type</option>
+                                <option>Concert / Festival</option>
+                                <option>Sports</option>
+                                <option>Community Gathering</option>
+                                <option>Picnic</option>
+                                <option>School Event</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field full">
+                            <label for="eventLocation">Event Location *</label>
+                            <input
+                                type="text"
+                                id="eventLocation"
+                                placeholder="Enter event location"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="eventDate">Event Date *</label>
+                            <input type="date" id="eventDate" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="eventStart">Start Time *</label>
+                            <input type="time" id="eventStart" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="eventEnd">End Time *</label>
+                            <input type="time" id="eventEnd" required>
+                        </div>
+
+                        <div class="form-field full">
+                            <label for="eventDesc">Event Description</label>
+                            <textarea
+                                id="eventDesc"
+                                placeholder="Add details about your event (optional)"
+                            ></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="event-form-actions">
+                        <button type="reset" class="event-clear-btn">
+                            Clear Form
+                        </button>
+
+                        <button type="button" id="checkWeather" class="event-check-btn">
+                            Check Weather
+                        </button>
+                    </div>
+                </form>
             </section>
-        </section>
+
+            <!-- WEATHER PREVIEW -->
+            <aside class="event-weather-column">
+
+                <section class="event-weather-card">
+                    <h3>🌦️ Weather Preview</h3>
+
+                    <div class="event-weather-main">
+                        <div class="weather-emoji">🌤️</div>
+
+                        <div>
+                            <h2 class="temp">--°C</h2>
+                            <p class="weather-state">
+                                Choose date and location
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="weather-metrics">
+                        <div class="metric">
+                            Humidity
+                            <strong>--%</strong>
+                        </div>
+
+                        <div class="metric">
+                            Wind Speed
+                            <strong>-- km/h</strong>
+                        </div>
+
+                        <div class="metric">
+                            Rain Chance
+                            <strong>--%</strong>
+                        </div>
+                    </div>
+
+                    <p class="placeholder-note">
+                        Weather preview will appear after checking the event location and date.
+                    </p>
+                </section>
+
+                <!-- WEATHER SUITABILITY -->
+                <section class="event-suitability-card">
+                    <h3>🛡️ Weather Suitability</h3>
+
+                    <div class="event-score-row">
+                        <span>Event Weather Score</span>
+                        <span class="score-number">-- / 100</span>
+                    </div>
+
+                    <div class="event-progress">
+                        <span></span>
+                    </div>
+
+                    <p class="placeholder-note">
+                        Check the weather to see if conditions are suitable for your event.
+                    </p>
+                </section>
+
+                <!-- PLANNING TIP -->
+                <div class="event-planning-tip">
+                    <span>💡</span>
+
+                    <div>
+                        <strong>Planning Tip</strong>
+                        <p>
+                            Choose your event location and date first.
+                            Check the weather before saving your event.
+                        </p>
+                    </div>
+                </div>
+
+            </aside>
+
+        </div>
+
+        <!-- SAVE EVENT BUTTON -->
+        <button type="button" id="saveEvent" class="save-event-btn">
+            ＋ Save Event
+        </button>
+    </section>
+
+</section>
+
 
         <!-- MY EVENTS VIEW -->
         <section class="page-view" id="my-events-view" hidden>
