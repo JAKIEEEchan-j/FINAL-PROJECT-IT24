@@ -674,3 +674,127 @@ function getLocationLabel(result) {
 
     return placeName;
 }
+
+// Sample weather data
+const eventWeatherDemo = {
+    emoji: "🌤️",
+    temperature: "29°C",
+    condition: "Partly Cloudy",
+    humidity: "76%",
+    wind: "12 km/h",
+    rain: "25%",
+    score: 82,
+    rating: "Good for outdoor events",
+    advice: "Conditions look generally favorable. Consider shade, drinking water, and a backup plan if the weather changes."
+};
+
+// Check Weather Button
+const eventCheckWeatherBtn = document.getElementById("checkWeather");
+
+if (eventCheckWeatherBtn) {
+
+    eventCheckWeatherBtn.addEventListener("click", function () {
+
+        // Get the entered location and date
+        const eventLocation = document
+            .getElementById("eventLocation")
+            .value.trim();
+
+        const eventDate = document
+            .getElementById("eventDate")
+            .value;
+
+        // Check if location and date are provided
+        if (eventLocation === "" || eventDate === "") {
+            alert("Please enter an event location and date first.");
+            return;
+        }
+
+        // Display weather icon
+        document.querySelector(
+            "#plan-event-view .weather-emoji"
+        ).textContent = eventWeatherDemo.emoji;
+
+        // Display temperature
+        document.querySelector(
+            "#plan-event-view .temp"
+        ).textContent = eventWeatherDemo.temperature;
+
+        // Display weather condition and location
+        document.querySelector(
+            "#plan-event-view .weather-state"
+        ).textContent =
+            eventWeatherDemo.condition + " · " + eventLocation;
+
+        // Display humidity
+        const eventWeatherMetrics = document.querySelectorAll(
+            "#plan-event-view .weather-metrics .metric strong"
+        );
+
+        eventWeatherMetrics[0].textContent =
+            eventWeatherDemo.humidity;
+
+        // Display wind speed
+        eventWeatherMetrics[1].textContent =
+            eventWeatherDemo.wind;
+
+        // Display rain chance
+        eventWeatherMetrics[2].textContent =
+            eventWeatherDemo.rain;
+
+        // Display weather score
+        document.querySelector(
+            "#plan-event-view .score-number"
+        ).textContent =
+            eventWeatherDemo.score + " / 100";
+
+        // Update progress bar
+        document.querySelector(
+            "#plan-event-view .event-progress span"
+        ).style.width =
+            eventWeatherDemo.score + "%";
+
+        // Update weather preview note
+        document.querySelector(
+            "#plan-event-view .event-weather-card .placeholder-note"
+        ).textContent =
+            "Sample forecast for " + eventDate +
+            ". This is demo data, not live weather.";
+
+        // Update weather suitability message
+        document.querySelector(
+            "#plan-event-view .event-suitability-card .placeholder-note"
+        ).textContent =
+            eventWeatherDemo.rating +
+            ". This score uses sample data only.";
+
+        // Update planning tip
+        document.querySelector(
+            "#plan-event-view .event-planning-tip"
+        ).innerHTML =
+            "<span>💡</span>" +
+            "<div>" +
+                "<strong>Demo Weather Tip</strong>" +
+                "<p>" + eventWeatherDemo.advice + "</p>" +
+            "</div>";
+
+        // Confirmation message
+        alert("Sample weather preview updated!");
+
+    });
+
+}
+
+
+// Save Event Button (Step 1-2 only)
+const eventSaveBtn = document.getElementById("saveEvent");
+
+if (eventSaveBtn) {
+
+    eventSaveBtn.addEventListener("click", function () {
+
+        alert("Save Event functionality will be added in Step 3.");
+
+    });
+
+}
